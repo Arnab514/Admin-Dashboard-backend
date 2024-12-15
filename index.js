@@ -15,13 +15,21 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+const allowedOrigins = ['http://localhost:3000', 'https://yourfrontenddomain.com'];
+
 app.use(
     cors({
-        origin: "*",
-        credentials: true
+        origin: (origin, callback) => {
+            if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
+        credentials: true,
     })
 );
+
 app.options('*', cors()); // Allow preflight requests for all routes
 
 app.use(express.json());
