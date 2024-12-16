@@ -93,6 +93,11 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+// Route Middleware
+app.use('/api/auth', authRoutes);   // Auth routes (Login, Logout)
+app.use('/api/stores', storeRoutes); // Store-related routes
+app.use('/api/admin', adminRoutes); // Order-related routes
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({ 
