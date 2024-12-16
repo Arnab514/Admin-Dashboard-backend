@@ -162,10 +162,6 @@ export const createStore = async (req, res) => {
 //     }
 // };
 
-
-import Store from '../models/Store.js';
-import Order from '../models/Order.js';
-
 export const updateStoreLatestOrderInfo = async (storeId) => {
     try {
         // Find the latest created order for this store
