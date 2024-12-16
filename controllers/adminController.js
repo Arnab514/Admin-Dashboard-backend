@@ -142,23 +142,76 @@ export const createStore = async (req, res) => {
 // };
 
 
-export const getStoresWithOrderDetails = async (req, res) => {
+// export const getStoresWithOrderDetails = async (req, res) => {
+//     try {
+//         const stores = await Store.find();
+
+//         const storeDetails = stores.map(store => ({
+//             storeName: store.name,
+//             username: store.username,
+//             aggregators: store.aggregators,
+//             lastCreatedTime: store.latestCreatedOrderTime 
+//                 ? new Date(store.latestCreatedOrderTime).toLocaleString() 
+//                 : 'No orders created',
+//             createdElapsedTime: store.latestCreatedOrderElapsedTime || 'N/A'
+//         }));
+
+//         res.status(200).json(storeDetails);
+//     } catch (error) {
+//         res.status(500).json({ message: 'Error fetching store details', error: error.message });
+//     }
+// };
+
+
+import Store from '../models/Store.js';
+import Order from '../models/Order.js';
+
+export const updateStoreLatestOrderInfo = async (storeId) => {
     try {
-        const stores = await Store.find();
+        // Find the latest created order for this store
+        const latestCreatedOrder = await Order.findOne({
+            store: storeId,
+            'eventLog.status': 'created'
+        })
+        .sort({ 'eventLog.timestamp': -1 })
+        .limit(1);
 
-        const storeDetails = stores.map(store => ({
-            storeName: store.name,
-            username: store.username,
-            aggregators: store.aggregators,
-            lastCreatedTime: store.latestCreatedOrderTime 
-                ? new Date(store.latestCreatedOrderTime).toLocaleString() 
-                : 'No orders created',
-            createdElapsedTime: store.latestCreatedOrderElapsedTime || 'N/A'
-        }));
+        if (latestCreatedOrder) {
+            // Find the 'created' log entry
+            const createdLog = latestCreatedOrder.eventLog.find(
+                (log) => log.status === 'created'
+            );
 
-        res.status(200).json(storeDetails);
+            if (createdLog) {
+                const lastCreatedTime = createdLog.timestamp;
+                const createdDate = new Date(lastCreatedTime);
+                const createdElapsedTime = Math.abs(new Date() - createdDate) / (1000 * 60 * 60);
+
+                // Format the date to match "Dec 16, 2024, 02:27 PM" style
+                const formattedCreatedTime = createdDate.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+
+                // Update the store with latest order information
+                await Store.findByIdAndUpdate(storeId, {
+                    latestCreatedOrderTime: createdDate,
+                    latestCreatedOrderElapsedTime: `${createdElapsedTime.toFixed(2)} hours`
+                }, { 
+                    // This option ensures we get the updated document back
+                    new: true 
+                });
+
+                // Optionally, you can log the formatted time for verification
+                console.log('Formatted Created Time:', formattedCreatedTime);
+            }
+        }
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching store details', error: error.message });
+        console.error('Error updating store latest order info:', error);
     }
 };
 
