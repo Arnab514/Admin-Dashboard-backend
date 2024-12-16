@@ -67,6 +67,8 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
     'http://localhost:3000', 
     'https://admin-store-frontend.vercel.app',
+    'https://admin-store-frontend-38u6nzz3t-arnab-majumders-projects.vercel.app',
+    'https://admin-store-frontend-git-main-arnab-majumders-projects.vercel.app',
     // Add your deployed frontend URL here
 ];
 
@@ -74,9 +76,12 @@ const allowedOrigins = [
 app.use(
     cors({
         origin: (origin, callback) => {
+            console.log('Received origin:', origin); // Log the received origin
             if (!origin || allowedOrigins.includes(origin)) {
+                console.log('Origin allowed:', origin); // Log allowed origins
                 callback(null, true);
             } else {
+                console.log('Origin rejected:', origin); // Log rejected origins
                 callback(new Error('Not allowed by CORS'));
             }
         },
