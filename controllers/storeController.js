@@ -75,7 +75,7 @@ export const updateStoreLatestOrderInfo = async (storeId) => {
 
                 // Update the store with latest order information
                 await Store.findByIdAndUpdate(storeId, {
-                    latestCreatedOrderTime: createdDate,
+                    latestCreatedOrderTime: formattedCreatedTime,
                     latestCreatedOrderElapsedTime: elapsedTimeString
                     // latestCreatedOrderElapsedTime: `${createdElapsedTime.toFixed(2)} hours`
                 }, { 
