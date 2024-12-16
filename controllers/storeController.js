@@ -65,12 +65,12 @@ export const updateStoreLatestOrderInfo = async (storeId) => {
 
                 // Format the date to match "Dec 16, 2024, 02:27 PM" style
                 const formattedCreatedTime = createdDate.toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
+                    month: 'numeric',
+                    day: 'short',
                     year: 'numeric',
-                    hour: 'numeric',
+                    hour: '2-digit',
                     minute: '2-digit',
-                    hour12: true
+                    // hour12: true
                 });
 
                 // Update the store with latest order information
