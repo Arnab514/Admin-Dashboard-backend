@@ -5,6 +5,38 @@ import { generateToken } from '../utils/generateToken.js';
 
 
 
+// export const updateStoreLatestOrderInfo = async (storeId) => {
+//     try {
+//         // Find the latest created order for this store
+//         const latestCreatedOrder = await Order.findOne({
+//             store: storeId,
+//             'eventLog.status': 'created'
+//         })
+//         .sort({ 'eventLog.timestamp': -1 })
+//         .limit(1);
+
+//         if (latestCreatedOrder) {
+//             // Find the 'created' log entry
+//             const createdLog = latestCreatedOrder.eventLog.find(
+//                 (log) => log.status === 'created'
+//             );
+
+//             if (createdLog) {
+//                 const lastCreatedTime = createdLog.timestamp;
+//                 const createdElapsedTime = Math.abs(new Date() - new Date(lastCreatedTime)) / (1000 * 60 * 60);
+
+//                 // Update the store with latest order information
+//                 await Store.findByIdAndUpdate(storeId, {
+//                     latestCreatedOrderTime: new Date(lastCreatedTime),
+//                     latestCreatedOrderElapsedTime: `${createdElapsedTime.toFixed(2)} hours`
+//                 });
+//             }
+//         }
+//     } catch (error) {
+//         console.error('Error updating store latest order info:', error);
+//     }
+// };
+
 export const updateStoreLatestOrderInfo = async (storeId) => {
     try {
         // Find the latest created order for this store
@@ -23,19 +55,43 @@ export const updateStoreLatestOrderInfo = async (storeId) => {
 
             if (createdLog) {
                 const lastCreatedTime = createdLog.timestamp;
-                const createdElapsedTime = Math.abs(new Date() - new Date(lastCreatedTime)) / (1000 * 60 * 60);
+                const createdDate = new Date(lastCreatedTime);
+                const createdElapsedTime = Math.abs(new Date() - createdDate) / (1000 * 60 * 60);
+
+                // If less than an hour, show in minutes
+                const elapsedTimeString = createdElapsedTime < 1 
+                                ? `${(createdElapsedTime * 60).toFixed(2)} minutes` 
+                                : `${createdElapsedTime.toFixed(2)} hours`;
+
+                // Format the date to match "Dec 16, 2024, 02:27 PM" style
+                const formattedCreatedTime = createdDate.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
 
                 // Update the store with latest order information
                 await Store.findByIdAndUpdate(storeId, {
-                    latestCreatedOrderTime: new Date(lastCreatedTime),
-                    latestCreatedOrderElapsedTime: `${createdElapsedTime.toFixed(2)} hours`
+                    latestCreatedOrderTime: createdDate,
+                    latestCreatedOrderElapsedTime: elapsedTimeString
+                    // latestCreatedOrderElapsedTime: `${createdElapsedTime.toFixed(2)} hours`
+                }, { 
+                    // This option ensures we get the updated document back
+                    new: true 
                 });
+
+                // Optionally, you can log the formatted time for verification
+                console.log('Formatted Created Time:', formattedCreatedTime);
             }
         }
     } catch (error) {
         console.error('Error updating store latest order info:', error);
     }
 };
+
 
 export const createOrder = async (req, res) => {
     const { items, aggregator, netAmount, grossAmount, tax, discounts } = req.body;
