@@ -7,6 +7,10 @@ const storeSchema = new mongoose.Schema({
     aggregators: [{ type: String, enum: ['Zomato', 'Swiggy', 'Uber Eats', 'DoorDash', 'Deliveroo'] }],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     role: { type: String, default: 'store' },  // Make sure the role is set
+
+        // New fields for latest created order
+        latestCreatedOrderTime: { type: Date, default: null },
+        latestCreatedOrderElapsedTime: { type: String, default: 'N/A' }
 });
 
 // module.exports = mongoose.model('Store', storeSchema);

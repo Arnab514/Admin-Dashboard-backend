@@ -56,84 +56,105 @@ export const createStore = async (req, res) => {
 };
 
 // Get Stores with Order Details (Existing Code)
+// export const getStoresWithOrderDetails = async (req, res) => {
+//     try {
+//         const stores = await Store.find();
+
+//         const storeDetails = await Promise.all(
+//             stores.map(async (store) => {
+//                 // Fetch the latest delivered order for the store
+//                 const latestDeliveredOrder = await Order.findOne({
+//                     store: store._id,
+//                     'eventLog.status': 'delivered',
+//                 })
+//                     .sort({ 'eventLog.timestamp': -1 })
+//                     .limit(1);
+
+//                 // Fetch the latest created order for the store
+//                 const latestCreatedOrder = await Order.findOne({
+//                     store: store._id,
+//                     'eventLog.status': 'created',
+//                 })
+//                     .sort({ 'eventLog.timestamp': -1 })
+//                     .limit(1);
+
+//                 // Default details if no orders exist
+//                 let deliveredDetails = {
+//                     lastDeliveredTime: 'No delivered orders',
+//                     deliveredElapsedTime: 'N/A'
+//                 };
+
+//                 let createdDetails = {
+//                     lastCreatedTime: 'No orders created',
+//                     createdElapsedTime: 'N/A'
+//                 };
+
+//                 // Calculate delivered order times if exists
+//                 if (latestDeliveredOrder) {
+//                     const lastDeliveredLog = latestDeliveredOrder.eventLog.find(
+//                         (log) => log.status === 'delivered'
+//                     );
+
+//                     if (lastDeliveredLog) {
+//                         const lastDeliveredTime = lastDeliveredLog.timestamp;
+//                         const deliveredElapsedTime = Math.abs(new Date() - new Date(lastDeliveredTime)) / (1000 * 60 * 60);
+
+//                         deliveredDetails = {
+//                             lastDeliveredTime: new Date(lastDeliveredTime).toLocaleString(),
+//                             deliveredElapsedTime: `${deliveredElapsedTime.toFixed(2)} hours`
+//                         };
+//                     }
+//                 }
+
+//                 // Calculate created order times if exists
+//                 if (latestCreatedOrder) {
+//                     const lastCreatedLog = latestCreatedOrder.eventLog.find(
+//                         (log) => log.status === 'created'
+//                     );
+
+//                     if (lastCreatedLog) {
+//                         const lastCreatedTime = lastCreatedLog.timestamp;
+//                         const createdElapsedTime = Math.abs(new Date() - new Date(lastCreatedTime)) / (1000 * 60 * 60);
+
+//                         createdDetails = {
+//                             lastCreatedTime: new Date(lastCreatedTime).toLocaleString(),
+//                             createdElapsedTime: `${createdElapsedTime.toFixed(2)} hours`
+//                         };
+//                     }
+//                 }
+
+//                 return {
+//                     storeName: store.name,
+//                     username: store.username,
+//                     aggregators: store.aggregators,
+//                     lastDeliveredTime: deliveredDetails.lastDeliveredTime,
+//                     elapsedTime: deliveredDetails.deliveredElapsedTime,
+//                     lastCreatedTime: createdDetails.lastCreatedTime,
+//                     createdElapsedTime: createdDetails.createdElapsedTime
+//                 };
+//             })
+//         );
+
+//         res.status(200).json(storeDetails);
+//     } catch (error) {
+//         res.status(500).json({ message: 'Error fetching store details', error: error.message });
+//     }
+// };
+
+
 export const getStoresWithOrderDetails = async (req, res) => {
     try {
         const stores = await Store.find();
 
-        const storeDetails = await Promise.all(
-            stores.map(async (store) => {
-                // Fetch the latest delivered order for the store
-                const latestDeliveredOrder = await Order.findOne({
-                    store: store._id,
-                    'eventLog.status': 'delivered',
-                })
-                    .sort({ 'eventLog.timestamp': -1 })
-                    .limit(1);
-
-                // Fetch the latest created order for the store
-                const latestCreatedOrder = await Order.findOne({
-                    store: store._id,
-                    'eventLog.status': 'created',
-                })
-                    .sort({ 'eventLog.timestamp': -1 })
-                    .limit(1);
-
-                // Default details if no orders exist
-                let deliveredDetails = {
-                    lastDeliveredTime: 'No delivered orders',
-                    deliveredElapsedTime: 'N/A'
-                };
-
-                let createdDetails = {
-                    lastCreatedTime: 'No orders created',
-                    createdElapsedTime: 'N/A'
-                };
-
-                // Calculate delivered order times if exists
-                if (latestDeliveredOrder) {
-                    const lastDeliveredLog = latestDeliveredOrder.eventLog.find(
-                        (log) => log.status === 'delivered'
-                    );
-
-                    if (lastDeliveredLog) {
-                        const lastDeliveredTime = lastDeliveredLog.timestamp;
-                        const deliveredElapsedTime = Math.abs(new Date() - new Date(lastDeliveredTime)) / (1000 * 60 * 60);
-
-                        deliveredDetails = {
-                            lastDeliveredTime: new Date(lastDeliveredTime).toLocaleString(),
-                            deliveredElapsedTime: `${deliveredElapsedTime.toFixed(2)} hours`
-                        };
-                    }
-                }
-
-                // Calculate created order times if exists
-                if (latestCreatedOrder) {
-                    const lastCreatedLog = latestCreatedOrder.eventLog.find(
-                        (log) => log.status === 'created'
-                    );
-
-                    if (lastCreatedLog) {
-                        const lastCreatedTime = lastCreatedLog.timestamp;
-                        const createdElapsedTime = Math.abs(new Date() - new Date(lastCreatedTime)) / (1000 * 60 * 60);
-
-                        createdDetails = {
-                            lastCreatedTime: new Date(lastCreatedTime).toLocaleString(),
-                            createdElapsedTime: `${createdElapsedTime.toFixed(2)} hours`
-                        };
-                    }
-                }
-
-                return {
-                    storeName: store.name,
-                    username: store.username,
-                    aggregators: store.aggregators,
-                    lastDeliveredTime: deliveredDetails.lastDeliveredTime,
-                    elapsedTime: deliveredDetails.deliveredElapsedTime,
-                    lastCreatedTime: createdDetails.lastCreatedTime,
-                    createdElapsedTime: createdDetails.createdElapsedTime
-                };
-            })
-        );
+        const storeDetails = stores.map(store => ({
+            storeName: store.name,
+            username: store.username,
+            aggregators: store.aggregators,
+            lastCreatedTime: store.latestCreatedOrderTime 
+                ? new Date(store.latestCreatedOrderTime).toLocaleString() 
+                : 'No orders created',
+            createdElapsedTime: store.latestCreatedOrderElapsedTime || 'N/A'
+        }));
 
         res.status(200).json(storeDetails);
     } catch (error) {
